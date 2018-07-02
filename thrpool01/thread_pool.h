@@ -69,7 +69,10 @@ thread_pool<WORK_FN_T, WORK_DATA_T>::~thread_pool()
 template <typename WORK_FN_T, typename WORK_DATA_T>
 void thread_pool<WORK_FN_T, WORK_DATA_T>::execute(data_ptr_t data_ptr)
 {
-	m_working_data_queue.push(data_ptr);
+	{
+		lock_t lock(m_mutex);
+		m_working_data_queue.push(data_ptr);
+	}
 	m_condition_variable.notify_one();
 }
 
