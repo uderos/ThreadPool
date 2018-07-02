@@ -108,7 +108,6 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 {
 	std::cout << "Thread_" << std::this_thread::get_id() << " starts" << std::endl;
 
-	lock_t lock(m_mutex);
 	auto cv_fn = [this] {
 		const bool data_available = (!this->m_working_data_queue.empty());
 		return data_available || m_termination_flag;
@@ -117,6 +116,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 	while (!m_termination_flag)
 	{
 		std::cout << "Thread_" << std::this_thread::get_id() << " waits" << std::endl;
+		lock_t lock(m_mutex);
 		m_condition_variable.wait(lock, cv_fn);
 		std::cout << "Thread_" << std::this_thread::get_id() 
 			<< " wakes up" 
@@ -124,7 +124,14 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 			<< " #q=" << m_working_data_queue.size()
 			<< std::endl;
 
-		if ((!m_termination_flag) &&
+		if (m_termination_flag)
+		{
+			std::cout << "Thread_" << std::this_thread::get_id() << " TERMINATES" << std::endl;
+			return;
+		}
+
+
+		if (/*(!m_termination_flag) && */
 			(!m_working_data_queue.empty()))
 		{
 			data_ptr_t data_ptr = m_working_data_queue.front();
