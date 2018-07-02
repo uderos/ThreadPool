@@ -80,7 +80,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::terminate_and_wait()
 
 	m_condition_variable.notify_all();
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // UBEDEBUG
+//	std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // UBEDEBUG
 
 
 	for (auto & thr_ptr : m_working_threads)
@@ -106,7 +106,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::terminate_no_wait()
 template <typename WORK_FN_T, typename WORK_DATA_T>
 void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 {
-	std::cout << "Thread_" << std::this_thread::get_id() << " starts" << std::endl;
+	DBG_OUT << "Thread_" << std::this_thread::get_id() << " starts";
 
 	auto cv_fn = [this] {
 		const bool data_available = (!this->m_working_data_queue.empty());
@@ -115,14 +115,13 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 
 	while (!m_termination_flag)
 	{
-		std::cout << "Thread_" << std::this_thread::get_id() << " waits" << std::endl;
+		DBG_OUT << "Thread_" << std::this_thread::get_id() << " waits";
 		lock_t lock(m_mutex);
 		m_condition_variable.wait(lock, cv_fn);
-		std::cout << "Thread_" << std::this_thread::get_id() 
-			<< " wakes up" 
+		DBG_OUT << "Thread_" << std::this_thread::get_id()
+			<< " wakes up"
 			<< " tf=" << m_termination_flag
-			<< " #q=" << m_working_data_queue.size()
-			<< std::endl;
+			<< " #q=" << m_working_data_queue.size();
 
 		if ((!m_termination_flag) &&
 			(!m_working_data_queue.empty()))
@@ -133,7 +132,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 			m_work_fn(*data_ptr);
 		}
 	}
-	std::cout << "Thread_" << std::this_thread::get_id() << " terminates" << std::endl;
+	DBG_OUT << "Thread_" << std::this_thread::get_id() << " terminates";
 }
 
 
