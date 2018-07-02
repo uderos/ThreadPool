@@ -18,8 +18,9 @@ class thread_pool
 
 		void execute(data_ptr_t data_ptr);
 
+		bool has_pending_tasks() const;
+
 		void terminate_and_wait();
-//		void terminate_no_wait();
 
 
 	private:
@@ -59,8 +60,10 @@ thread_pool<WORK_FN_T, WORK_DATA_T>::thread_pool(WORK_FN_T & work_fn,
 template <typename WORK_FN_T, typename WORK_DATA_T>
 thread_pool<WORK_FN_T, WORK_DATA_T>::~thread_pool()
 {
-	//if (!m_termination_flag)
-	//	throw std::runtime_error("thread_pool not terminated");
+#pragma warning(disable:4297)
+	if (!m_termination_flag)
+		throw std::runtime_error("thread_pool not terminated");
+#pragma warning(default:4297)
 }
 
 template <typename WORK_FN_T, typename WORK_DATA_T>
@@ -86,22 +89,9 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::terminate_and_wait()
 	m_working_threads.clear();
 }
 
-//template <typename WORK_FN_T, typename WORK_DATA_T>
-//void thread_pool<WORK_FN_T, WORK_DATA_T>::terminate_no_wait()
-//{
-//	for (auto & t : m_working_threads)
-//		t.detach();
-//
-//	m_termination_flag = true;
-//
-//	m_condition_variable.notify_all();
-//}
-
 template <typename WORK_FN_T, typename WORK_DATA_T>
 void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 {
-	DBG_OUT << "Start";
-
 	auto cv_fn = [this] {
 		const bool data_available = (!this->m_working_data_queue.empty());
 		return data_available || m_termination_flag;
@@ -109,12 +99,8 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 
 	while (!m_termination_flag)
 	{
-		DBG_OUT << "Wait";
 		lock_t lock(m_mutex);
 		m_condition_variable.wait(lock, cv_fn);
-		DBG_OUT << "Wakes up"
-			<< " tf=" << m_termination_flag
-			<< " #q=" << m_working_data_queue.size();
 
 		if ((!m_termination_flag) &&
 			(!m_working_data_queue.empty()))
@@ -125,9 +111,13 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 			m_work_fn(*data_ptr);
 		}
 	}
-	DBG_OUT << "Terminates";
 }
 
+template <typename WORK_FN_T, typename WORK_DATA_T>
+bool thread_pool<WORK_FN_T, WORK_DATA_T>::has_pending_tasks() const
+{
+	return (!m_working_data_queue.empty());
+}
 
 
 }; // namespace udr
