@@ -106,7 +106,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::terminate_no_wait()
 template <typename WORK_FN_T, typename WORK_DATA_T>
 void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 {
-	DBG_OUT << "Thread_" << std::this_thread::get_id() << " starts";
+	DBG_OUT << "Start";
 
 	auto cv_fn = [this] {
 		const bool data_available = (!this->m_working_data_queue.empty());
@@ -115,11 +115,10 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 
 	while (!m_termination_flag)
 	{
-		DBG_OUT << "Thread_" << std::this_thread::get_id() << " waits";
+		DBG_OUT << "Wait";
 		lock_t lock(m_mutex);
 		m_condition_variable.wait(lock, cv_fn);
-		DBG_OUT << "Thread_" << std::this_thread::get_id()
-			<< " wakes up"
+		DBG_OUT << "Wakes up"
 			<< " tf=" << m_termination_flag
 			<< " #q=" << m_working_data_queue.size();
 
@@ -132,7 +131,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 			m_work_fn(*data_ptr);
 		}
 	}
-	DBG_OUT << "Thread_" << std::this_thread::get_id() << " terminates";
+	DBG_OUT << "Terminates";
 }
 
 
