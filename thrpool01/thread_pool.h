@@ -124,14 +124,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 			<< " #q=" << m_working_data_queue.size()
 			<< std::endl;
 
-		if (m_termination_flag)
-		{
-			std::cout << "Thread_" << std::this_thread::get_id() << " TERMINATES" << std::endl;
-			return;
-		}
-
-
-		if (/*(!m_termination_flag) && */
+		if ((!m_termination_flag) &&
 			(!m_working_data_queue.empty()))
 		{
 			data_ptr_t data_ptr = m_working_data_queue.front();
