@@ -22,6 +22,8 @@ class thread_pool
 
 		void terminate_and_wait();
 
+		std::size_t dbg_get_num_tasks() const;
+
 
 	private:
 
@@ -105,8 +107,7 @@ void thread_pool<WORK_FN_T, WORK_DATA_T>::m_thread_fn(const int tid)
 		lock_t lock(m_mutex);
 		m_condition_variable.wait(lock, cv_fn);
 
-		if ((!m_termination_flag) &&
-			(!m_working_data_queue.empty()))
+		if (!m_termination_flag)
 		{
 			data_ptr_t data_ptr = m_working_data_queue.front();
 			m_working_data_queue.pop();
@@ -120,6 +121,12 @@ template <typename WORK_FN_T, typename WORK_DATA_T>
 bool thread_pool<WORK_FN_T, WORK_DATA_T>::has_pending_tasks() const
 {
 	return (!m_working_data_queue.empty());
+}
+
+template <typename WORK_FN_T, typename WORK_DATA_T>
+std::size_t thread_pool<WORK_FN_T, WORK_DATA_T>::dbg_get_num_tasks() const
+{
+	return m_working_data_queue.size();
 }
 
 

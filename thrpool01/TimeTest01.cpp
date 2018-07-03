@@ -41,7 +41,7 @@ void g_time_test01()
 {
 	std::cout << "\n\n" << __FUNCTION__ << " BEGIN" << std::endl;
 
-	static constexpr std::size_t NUM_THREADS = 8;
+	static constexpr std::size_t NUM_THREADS = 2;
 	static constexpr std::size_t NUM_TASKS{ 1000 };
 
 	std::vector<std::shared_ptr<work_data_t>> work_data_list;
@@ -61,7 +61,8 @@ void g_time_test01()
 		wd->t2 = work_data_t::clock_t::now();
 	}
 
-	DBG_OUT << "Waiting for completion ...";
+	const auto ntasks = tp.dbg_get_num_tasks();
+	DBG_OUT << "Waiting for completion ... ntasks=" << ntasks;
 
 	while (tp.has_pending_tasks())
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -69,8 +70,9 @@ void g_time_test01()
 	DBG_OUT << "Terminating the pool";
 	tp.terminate_and_wait();
 
-	for (auto wd : work_data_list)
-	{
+	// for (auto wd : work_data_list)
+	auto & wd = work_data_list[work_data_list.size() - 1];
+	{	
 		const auto d1 = f_calc_us(start_time, wd->t1);
 		const auto d2 = f_calc_us(start_time, wd->t2);
 		const auto d3 = f_calc_us(start_time, wd->t3);
